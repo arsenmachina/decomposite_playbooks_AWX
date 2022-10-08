@@ -1,0 +1,24 @@
+---
+- name: Create docker user with passwordless sudo
+  hosts: all
+  become: yes
+  gather_facts: yes
+  tasks:
+
+    - name: Add docker user
+      user:
+        name: docker
+        shell: /bin/bash
+        groups: docker
+
+
+    - name: Create sudo file
+      file:
+        path: /etc/sudoers.d/docker
+        state: touch
+
+    - name: Give docker user passwordless sudo
+      lineinfile:
+        path: /etc/sudoers.d/docker
+        state: present
+        line: 'docker ALL=(ALL:ALL) NOPASSWD: ALL'

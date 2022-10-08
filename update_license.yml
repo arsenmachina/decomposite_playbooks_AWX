@@ -1,0 +1,51 @@
+---
+- name: install docker
+  hosts: all
+  
+  become: yes
+  gather_facts: yes
+  tasks:
+
+   - name: test
+     ansible.builtin.uri:
+      url: "https://{{ address_or_dns }}/VERSION.txt"
+      method: GET
+     ignore_errors: True
+     register: check_MW
+     
+
+   - name: test
+     ansible.builtin.uri:
+      url: "https://{{ address_or_dns }}/status"
+      method: GET
+     ignore_errors: True
+     register: check_MS
+
+   - name: Prints two lines of messages, but only if there is an environment value set
+     ansible.builtin.debug:
+       msg:
+          - "Provisioning {{check_MW.redirected}}"
+
+
+
+
+   - name: Prints two lines of messages, but only if there is an environment value set
+     ansible.builtin.debug:
+        msg:
+        - "Its MW: "
+     when: 
+      - check_MW.status == 200
+      - check_MW.redirected = 'false'
+
+
+
+   - name: Prints two lines of messages, but only if there is an environment value set
+     ansible.builtin.debug:
+        msg:
+        - "Its MS: "
+     when:
+      - check_MS.status == 200
+      - check_MS.redirected = 'false'
+
+
+       

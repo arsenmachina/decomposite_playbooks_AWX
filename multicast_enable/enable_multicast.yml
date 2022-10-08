@@ -1,0 +1,62 @@
+
+- name: enable multicast
+  gather_facts: true
+  hosts: all 
+  become: yes
+  user: root
+  
+  tasks:
+
+
+
+    # - name: define traditional ethernet facts
+    #   set_fact:
+    #      ansible_eth: "{% set ansible_eth = ansible_eth|default([]) + [hostvars[inventory_hostname]['ansible_' + item]] %}{{ ansible_eth|list }}"
+    #   when: hostvars[inventory_hostname]['ansible_' + item]['device'] == 'enp04s3'
+    #   with_items:
+    #     - "{{ hostvars[inventory_hostname]['ansible_interfaces'] }}"
+    #   register: foo.
+
+    # - name: checK_res
+    #   debug:
+    #     msg: "Check: {{foo}}"
+
+
+    - name: firewall prepare
+      ansible.posix.firewalld:
+        rich_rule: rule family="ipv4" destination address="224.0.0.0/4" protocol value="ip" accept
+        permanent: yes
+        state: enabled
+        zone: public
+        immediate: true
+
+    - name: disable rp_filter
+      ansible.builtin.blockinfile:
+        path: /etc/sysctl.conf
+        block: |
+          net.ipv4.conf.default.rp_filter = 0
+          net.ipv4.conf.all.rp_filter = 0
+          net.ipv4.conf.bond0/3001.rp_filter = 0
+
+    # - name: diable rp_filter before reboot
+    #   ansible.builtin.lineinfile:
+    #       path: /proc/sys/net/ipv4/conf/enp0s3/rp_filter
+    #       regexp: '1'
+    #       line: '0'
+
+    - name: Create route file
+      file:
+        path: /etc/sysconfig/network-scripts/route-bond0.3001
+        state: touch
+
+    - name: Add route for dev bond0.3001
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/route-bond0.3001
+        state: present
+        line: '224.0.0.0/4 dev bond0.3001'
+
+
+    
+
+
+      

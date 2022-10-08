@@ -1,0 +1,67 @@
+---
+- name: Opensearch
+  hosts: all
+  become: yes
+  become_user: docker
+  gather_facts: yes
+
+  tasks:
+
+   - name: OpenSearch
+     docker_container:
+      name: opensearch
+      image: opensearchproject/opensearch:2.0.1
+      restart_policy: always
+      env:
+       cluster.name: 'opensearch-cluster'
+       node.name: 'opensearch'
+       bootstrap.memory_lock: 'true' 
+       OPENSEARCH_JAVA_OPTS: '-Xms512m -Xmx512m'
+       DISABLE_INSTALL_DEMO_CONFIG: 'true' 
+       discovery.type: 'single-node'
+       DISABLE_SECURITY_PLUGIN: 'true' 
+       cluster.routing.allocation.disk.threshold_enabled: 'false'
+
+      healthcheck:
+        test: ["CMD", "curl", "-XPUT", "-H", "\"Content-Type: application/json\"", "http://localhost:9200/_all/_settings", "-d", "\"{\"index.blocks.read_only_allow_delete\": null}\""]
+        interval: 86400s
+        timeout: 10s
+        retries: 1
+        start_period: 40s
+      ulimits:
+        - 'memlock: -1:-1'
+        - 'nofile: 65536:65536'
+      volumes:
+        - opensearch-data:/usr/share/opensearch/data
+      ports:
+        - 9200:9200
+        - 9600:9600 
+      exposed_ports:
+       - "9000"
+       - "9001"  
+
+
+
+
+
+
+
+
+  # - name: Postgres new MW for test
+  #   docker_container:
+  #    name: postgres
+  #    context: ./postgres
+  #    restart_policy: always
+  #    state: started
+  #    #restart: yes
+  #    volumes:
+  #      - s3data:/minio/data
+  #    ports:
+  #      - "{{ MINIO_PORT_API }}:9000"
+  #      - "{{MINIO_PORT_DASHBOARD}}:9001"
+  #    exposed_ports:
+  #      - "9000"
+  #      - "9001"
+  #    env:
+  #       MINIO_ROOT_USER: "{{S3_USER}}"
+  #       MINIO_ROOT_PASSWORD: "{{S3_PASSWORD}}"

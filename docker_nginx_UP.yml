@@ -1,0 +1,31 @@
+---
+- name: test
+  hosts: all
+  become: yes
+  become_user: docker
+  gather_facts: yes
+
+  tasks:
+
+  
+
+  
+    
+    - name: Setup a Nginx Docker Container
+      docker_container:
+        name: ingress
+        image: nginx:stable-alpine
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "80:80"
+          - "443:443"
+
+    
+
+
+
+  
+
+
+    

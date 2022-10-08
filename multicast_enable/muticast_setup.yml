@@ -1,0 +1,9 @@
+- name: enable multicast
+  gather_facts: true
+  hosts: all 
+  become: yes
+  user: root
+  tasks:
+ 
+- include: enable_multicast.yml
+  when: ansible_facts['bond0.3001']
